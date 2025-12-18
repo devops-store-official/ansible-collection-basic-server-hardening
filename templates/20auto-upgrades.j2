@@ -1,0 +1,7 @@
+// Enable automatic updates
+// Managed by basic_server_hardening role - DO NOT EDIT MANUALLY
+
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "{{ auto_upgrades_auto_clean_interval }}";
+APT::Periodic::Unattended-Upgrade "1";

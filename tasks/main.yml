@@ -1,0 +1,21 @@
+---
+# tasks file for basic_server_hardening
+
+- name: "SSH Hardening"
+  ansible.builtin.include_tasks: 1-ssh_hardening.yml
+  tags: ['ssh', 'hardening']
+
+- name: "Firewall Configuration (UFW)"
+  ansible.builtin.include_tasks: 2-firewall_ufw.yml
+  when: firewall_enabled | bool
+  tags: ['firewall', 'ufw']
+
+- name: "Fail2Ban Installation and Configuration"
+  ansible.builtin.include_tasks: 3-fail2ban.yml
+  when: fail2ban_enabled | bool
+  tags: ['fail2ban', 'security']
+
+- name: "Auto-Upgrades Configuration"
+  ansible.builtin.include_tasks: 4-auto_upgrades.yml
+  when: auto_upgrades_enabled | bool
+  tags: ['auto-upgrades', 'updates']

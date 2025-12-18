@@ -1,0 +1,123 @@
+# SSH Server Configuration - Hardened by Ansible
+# Managed by basic_server_hardening role - DO NOT EDIT MANUALLY
+
+# Port and Listen Address
+Port {{ ssh_hardening_port }}
+#AddressFamily any
+#ListenAddress 0.0.0.0
+#ListenAddress ::
+
+# Protocol
+Protocol 2
+
+# Host Keys
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+# Ciphers and Keying
+#RekeyLimit default none
+
+# Logging
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# Authentication
+LoginGraceTime 60
+PermitRootLogin {% if ssh_hardening_disable_root_login %}no{% else %}yes{% endif %}
+
+StrictModes yes
+MaxAuthTries {{ ssh_hardening_max_auth_tries }}
+MaxSessions {{ ssh_hardening_max_sessions }}
+
+PubkeyAuthentication yes
+
+# Expect .ssh/authorized_keys for public key authentication
+AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2
+
+#AuthorizedPrincipalsFile none
+#AuthorizedKeysCommand none
+#AuthorizedKeysCommandUser nobody
+
+# For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
+HostbasedAuthentication no
+
+# Change to yes if you don't trust ~/.ssh/known_hosts for HostbasedAuthentication
+#IgnoreUserKnownHosts no
+
+# Don't read the user's ~/.rhosts and ~/.shosts files
+IgnoreRhosts yes
+
+# Password Authentication
+PasswordAuthentication {% if ssh_hardening_password_authentication %}yes{% else %}no{% endif %}
+
+PermitEmptyPasswords {% if ssh_hardening_permit_empty_passwords %}yes{% else %}no{% endif %}
+
+
+# Change to yes to enable challenge-response passwords (beware issues with
+# some PAM modules and threads)
+ChallengeResponseAuthentication {% if ssh_hardening_challenge_response_auth %}yes{% else %}no{% endif %}
+
+
+# Kerberos options
+#KerberosAuthentication no
+#KerberosOrLocalPasswd yes
+#KerberosTicketCleanup yes
+#KerberosGetAFSToken no
+
+# GSSAPI options
+#GSSAPIAuthentication no
+#GSSAPICleanupCredentials yes
+#GSSAPIStrictAcceptorCheck yes
+#GSSAPIKeyExchange no
+
+# Set this to 'yes' to enable PAM authentication, account processing,
+# and session processing. If this is enabled, PAM authentication will
+# be allowed through the ChallengeResponseAuthentication and
+# PasswordAuthentication. Depending on your PAM configuration,
+# PAM authentication via ChallengeResponseAuthentication may bypass
+# the setting of "PermitRootLogin without-password".
+UsePAM yes
+
+# AllowAgentForwarding
+AllowAgentForwarding yes
+
+# X11 Forwarding
+X11Forwarding {% if ssh_hardening_x11_forwarding %}yes{% else %}no{% endif %}
+
+#X11DisplayOffset 10
+#X11UseLocalhost yes
+#PermitTTY yes
+PrintMotd no
+#PrintLastLog yes
+#TCPKeepAlive yes
+#PermitUserEnvironment no
+#Compression delayed
+
+# Client Alive - Keep connection alive and detect dead clients
+ClientAliveInterval {{ ssh_hardening_client_alive_interval }}
+ClientAliveCountMax {{ ssh_hardening_client_alive_count_max }}
+
+#UseDNS no
+#PidFile /var/run/sshd.pid
+#MaxStartups 10:30:100
+#PermitTunnel no
+#ChrootDirectory none
+#VersionAddendum none
+
+# No default banner
+#Banner none
+
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+
+# Override default of no subsystems
+Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Restrict users/groups if configured
+{% if ssh_hardening_allowed_users | length > 0 %}
+AllowUsers {{ ssh_hardening_allowed_users | join(' ') }}
+{% endif %}
+{% if ssh_hardening_allowed_groups | length > 0 %}
+AllowGroups {{ ssh_hardening_allowed_groups | join(' ') }}
+{% endif %}

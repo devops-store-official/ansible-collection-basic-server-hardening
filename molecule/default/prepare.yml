@@ -1,0 +1,42 @@
+---
+# Molecule prepare playbook
+# This runs after container creation but before converge
+# Used to configure SSH keys for testing
+
+- name: Prepare
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Update APT cache (Docker containers need this)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 0
+      changed_when: false  # Don't count this as a change for idempotence
+
+    - name: Ensure .ssh directory exists for ansible user
+      ansible.builtin.file:
+        path: /home/ansible/.ssh
+        state: directory
+        owner: ansible
+        group: ansible
+        mode: '0700'
+
+    - name: Copy SSH public key to ansible user authorized_keys
+      ansible.builtin.copy:
+        src: "{{ lookup('env', 'MOLECULE_SCENARIO_DIRECTORY') }}/../shared/test_key.pub"
+        dest: /home/ansible/.ssh/authorized_keys
+        owner: ansible
+        group: ansible
+        mode: '0600'
+
+    - name: Create ansible user if needed (should exist from Dockerfile)
+      ansible.builtin.user:
+        name: ansible
+        shell: /bin/bash
+        createhome: true
+      when: false  # Disabled, user created in Dockerfile
+
+    - name: Ensure SSH service is started
+      ansible.builtin.systemd:
+        name: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"
+        state: started

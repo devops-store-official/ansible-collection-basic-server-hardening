@@ -1,0 +1,59 @@
+---
+# Auto-Upgrades Configuration
+
+- name: "Update APT cache"
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: ['auto-upgrades']
+
+- name: "Install unattended-upgrades package"
+  ansible.builtin.package:
+    name: unattended-upgrades
+    state: present
+  tags: ['auto-upgrades']
+
+- name: "Install apt-listchanges (Debian/Ubuntu)"
+  ansible.builtin.package:
+    name: apt-listchanges
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags: ['auto-upgrades']
+
+- name: "Configure unattended-upgrades"
+  ansible.builtin.template:
+    src: 50unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+  tags: ['auto-upgrades']
+
+- name: "Enable automatic updates"
+  ansible.builtin.template:
+    src: 20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+  tags: ['auto-upgrades']
+
+- name: "Ensure unattended-upgrades service is enabled"
+  ansible.builtin.systemd:
+    name: unattended-upgrades
+    enabled: true
+    state: started
+  tags: ['auto-upgrades']
+
+- name: "Test unattended-upgrades configuration"
+  ansible.builtin.command: unattended-upgrade --dry-run --debug
+  register: unattended_upgrades_test
+  changed_when: false
+  failed_when: false
+  tags: ['auto-upgrades']
+
+- name: "Display unattended-upgrades test result"
+  ansible.builtin.debug:
+    msg: "Unattended-upgrades is configured correctly"
+  when: unattended_upgrades_test.rc == 0
+  tags: ['auto-upgrades']

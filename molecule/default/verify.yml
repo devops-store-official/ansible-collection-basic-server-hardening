@@ -1,0 +1,191 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    # ===== SSH Hardening Verification =====
+    - name: Check SSH configuration file exists
+      ansible.builtin.stat:
+        path: /etc/ssh/sshd_config
+      register: sshd_config
+
+    - name: Assert SSH config exists
+      ansible.builtin.assert:
+        that:
+          - sshd_config.stat.exists
+        fail_msg: "SSH configuration file not found!"
+        success_msg: "SSH configuration file exists."
+
+    - name: Check SSH service is running
+      ansible.builtin.systemd:
+        name: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"
+      register: ssh_service
+
+    - name: Assert SSH service is active
+      ansible.builtin.assert:
+        that:
+          - ssh_service.status.ActiveState == "active"
+        fail_msg: "SSH service is not running!"
+        success_msg: "SSH service is running."
+
+    - name: Check root login is disabled
+      ansible.builtin.shell: grep -E "^PermitRootLogin\s+no" /etc/ssh/sshd_config
+      register: root_login
+      changed_when: false
+      failed_when: false
+
+    - name: Assert root login is disabled
+      ansible.builtin.assert:
+        that:
+          - root_login.rc == 0
+        fail_msg: "Root login is not disabled!"
+        success_msg: "Root login is properly disabled."
+
+    - name: Check password authentication is disabled
+      ansible.builtin.shell: grep -E "^PasswordAuthentication\s+no" /etc/ssh/sshd_config
+      register: password_auth
+      changed_when: false
+      failed_when: false
+
+    - name: Assert password authentication is disabled
+      ansible.builtin.assert:
+        that:
+          - password_auth.rc == 0
+        fail_msg: "Password authentication is not disabled!"
+        success_msg: "Password authentication is properly disabled."
+
+    # ===== UFW Firewall Verification =====
+    - name: Check UFW is installed
+      ansible.builtin.package:
+        name: ufw
+        state: present
+      check_mode: true
+      register: ufw_installed
+
+    - name: Check UFW service is running
+      ansible.builtin.systemd:
+        name: ufw
+      register: ufw_service
+      failed_when: false
+
+    - name: Assert UFW service is active
+      ansible.builtin.assert:
+        that:
+          - ufw_service.status.ActiveState == "active"
+        fail_msg: "UFW service is not running!"
+        success_msg: "UFW service is running."
+
+    - name: Check UFW status
+      ansible.builtin.command: ufw status
+      register: ufw_status
+      changed_when: false
+
+    - name: Assert UFW is active
+      ansible.builtin.assert:
+        that:
+          - "'Status: active' in ufw_status.stdout"
+        fail_msg: "UFW is not active!"
+        success_msg: "UFW is active."
+
+    - name: Check SSH port is allowed in UFW
+      ansible.builtin.shell: ufw status | grep -E "22/tcp.*ALLOW"
+      register: ufw_ssh
+      changed_when: false
+      failed_when: false
+
+    - name: Assert SSH port is allowed
+      ansible.builtin.assert:
+        that:
+          - ufw_ssh.rc == 0
+        fail_msg: "SSH port is not allowed in UFW!"
+        success_msg: "SSH port is correctly allowed."
+
+    # ===== Fail2Ban Verification =====
+    - name: Check Fail2Ban is installed
+      ansible.builtin.package:
+        name: fail2ban
+        state: present
+      check_mode: true
+      register: fail2ban_installed
+
+    - name: Check Fail2Ban service is running
+      ansible.builtin.systemd:
+        name: fail2ban
+      register: fail2ban_service
+
+    - name: Assert Fail2Ban service is active
+      ansible.builtin.assert:
+        that:
+          - fail2ban_service.status.ActiveState == "active"
+        fail_msg: "Fail2Ban service is not running!"
+        success_msg: "Fail2Ban service is running."
+
+    - name: Check Fail2Ban jail.local exists
+      ansible.builtin.stat:
+        path: /etc/fail2ban/jail.local
+      register: fail2ban_config
+
+    - name: Assert Fail2Ban config exists
+      ansible.builtin.assert:
+        that:
+          - fail2ban_config.stat.exists
+        fail_msg: "Fail2Ban jail.local not found!"
+        success_msg: "Fail2Ban jail.local exists."
+
+    - name: Check SSH jail is enabled
+      ansible.builtin.command: fail2ban-client status sshd
+      register: fail2ban_sshd
+      changed_when: false
+      failed_when: false
+
+    - name: Assert SSH jail is active
+      ansible.builtin.assert:
+        that:
+          - fail2ban_sshd.rc == 0
+        fail_msg: "SSH jail is not active in Fail2Ban!"
+        success_msg: "SSH jail is active in Fail2Ban."
+
+    # ===== Auto-Upgrades Verification =====
+    - name: Check unattended-upgrades is installed
+      ansible.builtin.package:
+        name: unattended-upgrades
+        state: present
+      check_mode: true
+      register: auto_upgrades_installed
+
+    - name: Check unattended-upgrades config exists
+      ansible.builtin.stat:
+        path: /etc/apt/apt.conf.d/50unattended-upgrades
+      register: auto_upgrades_config
+
+    - name: Assert auto-upgrades config exists
+      ansible.builtin.assert:
+        that:
+          - auto_upgrades_config.stat.exists
+        fail_msg: "Unattended-upgrades config not found!"
+        success_msg: "Unattended-upgrades config exists."
+
+    - name: Check auto-upgrades enablement file exists
+      ansible.builtin.stat:
+        path: /etc/apt/apt.conf.d/20auto-upgrades
+      register: auto_upgrades_enabled
+
+    - name: Assert auto-upgrades is enabled
+      ansible.builtin.assert:
+        that:
+          - auto_upgrades_enabled.stat.exists
+        fail_msg: "Auto-upgrades not enabled!"
+        success_msg: "Auto-upgrades is enabled."
+
+    # ===== Summary =====
+    - name: Display verification summary
+      ansible.builtin.debug:
+        msg:
+          - "===== Verification Summary ====="
+          - "SSH: Configured and running"
+          - "UFW: Active and configured"
+          - "Fail2Ban: Active and protecting SSH"
+          - "Auto-Upgrades: Configured"
+          - "================================"

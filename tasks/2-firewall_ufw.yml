@@ -1,0 +1,81 @@
+---
+# UFW Firewall Configuration
+
+- name: "Update APT cache"
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: ['firewall']
+
+- name: "Install UFW"
+  ansible.builtin.package:
+    name: ufw
+    state: present
+  tags: ['firewall']
+
+- name: "Reset UFW to default state"
+  community.general.ufw:
+    state: reset
+  when: firewall_reset | default(false) | bool
+  tags: ['firewall']
+
+- name: "Configure UFW default policies"
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: 'incoming', policy: "{{ firewall_default_incoming }}" }
+    - { direction: 'outgoing', policy: "{{ firewall_default_outgoing }}" }
+  tags: ['firewall']
+
+- name: "Allow SSH before enabling firewall (prevent lockout)"
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_hardening_port }}"
+    proto: tcp
+    comment: "SSH - Critical"
+  tags: ['firewall']
+
+- name: "Configure UFW allowed ports"
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port | string }}"
+    proto: "{{ item.proto | default('tcp') }}"
+    comment: "{{ item.comment | default('Managed by Ansible') }}"
+  loop: "{{ firewall_allowed_ports }}"
+  when: item.port | string != ssh_hardening_port | string
+  tags: ['firewall']
+
+- name: "Configure UFW additional rules"
+  community.general.ufw:
+    rule: "{{ item.rule | default('allow') }}"
+    port: "{{ item.to_port | default(omit) }}"
+    proto: "{{ item.proto | default(omit) }}"
+    from_ip: "{{ item.from_ip | default(omit) }}"
+    to_ip: "{{ item.to_ip | default(omit) }}"
+    comment: "{{ item.comment | default('Custom rule') }}"
+  loop: "{{ firewall_additional_rules }}"
+  tags: ['firewall']
+
+- name: "Enable UFW"
+  community.general.ufw:
+    state: enabled
+  tags: ['firewall']
+
+- name: "Enable UFW service"
+  ansible.builtin.systemd:
+    name: ufw
+    enabled: true
+    state: started
+  tags: ['firewall']
+
+- name: "Display UFW status"
+  ansible.builtin.command: ufw status verbose
+  register: ufw_status
+  changed_when: false
+  tags: ['firewall']
+
+- name: "Show UFW status"
+  ansible.builtin.debug:
+    var: ufw_status.stdout_lines
+  tags: ['firewall']

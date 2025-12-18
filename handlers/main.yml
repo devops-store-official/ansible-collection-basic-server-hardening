@@ -1,0 +1,26 @@
+---
+# handlers file for basic_server_hardening
+
+- name: restart ssh
+  ansible.builtin.systemd:
+    name: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"
+    state: restarted
+  listen: restart ssh
+
+- name: reload ssh
+  ansible.builtin.systemd:
+    name: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"
+    state: reloaded
+  listen: reload ssh
+
+- name: restart fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: restarted
+  listen: restart fail2ban
+
+- name: reload ufw
+  ansible.builtin.systemd:
+    name: ufw
+    state: reloaded
+  listen: reload ufw

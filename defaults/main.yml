@@ -1,0 +1,133 @@
+---
+# defaults file for basic_server_hardening
+
+# =============================================================================
+# SSH HARDENING
+# =============================================================================
+
+# Port SSH (22 par défaut, peut être changé pour réduire les attaques automatisées)
+# ATTENTION: Changer le port SSH peut vous empêcher de vous connecter si mal configuré
+# Laissez vide ou commentez pour garder le port par défaut (22)
+ssh_hardening_port: 22
+
+# Désactiver le login root via SSH (fortement recommandé)
+ssh_hardening_disable_root_login: true
+
+# Forcer l'authentification par clé SSH uniquement (désactive les mots de passe)
+ssh_hardening_password_authentication: false
+
+# Autoriser uniquement certains utilisateurs à se connecter via SSH
+# Laissez vide pour autoriser tous les utilisateurs
+# Exemple: ssh_hardening_allowed_users: ["admin", "deploy"]
+ssh_hardening_allowed_users: []
+
+# Autoriser uniquement certains groupes à se connecter via SSH
+# Laissez vide pour autoriser tous les groupes
+# Exemple: ssh_hardening_allowed_groups: ["sudo", "ssh-users"]
+ssh_hardening_allowed_groups: []
+
+# Configuration SSH supplémentaire
+ssh_hardening_permit_empty_passwords: false
+ssh_hardening_challenge_response_auth: false
+ssh_hardening_x11_forwarding: false
+ssh_hardening_max_auth_tries: 3
+ssh_hardening_max_sessions: 10
+ssh_hardening_client_alive_interval: 300
+ssh_hardening_client_alive_count_max: 2
+
+# =============================================================================
+# FIREWALL (UFW)
+# =============================================================================
+
+# Activer le firewall UFW
+firewall_enabled: true
+
+# Politique par défaut
+firewall_default_incoming: deny
+firewall_default_outgoing: allow
+
+# Ports à ouvrir
+# Format: Liste de dictionnaires avec 'port', 'proto' (tcp/udp), et optionnel 'rule' (allow/deny)
+firewall_allowed_ports:
+  - port: "{{ ssh_hardening_port }}"
+    proto: tcp
+    comment: "SSH"
+  - port: 80
+    proto: tcp
+    comment: "HTTP"
+  - port: 443
+    proto: tcp
+    comment: "HTTPS"
+
+# Règles UFW supplémentaires (format libre)
+# Exemple:
+#   firewall_additional_rules:
+#     - rule: allow
+#       from_ip: 192.168.1.0/24
+#       to_port: 3306
+#       proto: tcp
+firewall_additional_rules: []
+
+# =============================================================================
+# FAIL2BAN
+# =============================================================================
+
+# Activer Fail2Ban
+fail2ban_enabled: true
+
+# Configuration jail SSH
+fail2ban_ssh_enabled: true
+fail2ban_ssh_port: "{{ ssh_hardening_port }}"
+fail2ban_ssh_maxretry: 5
+fail2ban_ssh_findtime: 600  # 10 minutes
+fail2ban_ssh_bantime: 3600   # 1 heure
+fail2ban_ssh_backend: systemd
+
+# Email pour les notifications (optionnel)
+fail2ban_destemail: ""
+fail2ban_sender: "fail2ban@{{ ansible_fqdn }}"
+fail2ban_action: "%(action_)s"  # action_mwl pour envoyer des emails
+
+# Ignorer certaines IPs
+# Exemple: fail2ban_ignoreip: ["127.0.0.1/8", "192.168.1.0/24"]
+fail2ban_ignoreip:
+  - "127.0.0.1/8"
+  - "::1"
+
+# =============================================================================
+# AUTO-UPGRADES
+# =============================================================================
+
+# Activer les mises à jour automatiques
+auto_upgrades_enabled: true
+
+# Configuration unattended-upgrades
+auto_upgrades_allowed_origins:
+  - "${distro_id}:${distro_codename}-security"
+  - "${distro_id}ESMApps:${distro_codename}-apps-security"
+  - "${distro_id}ESM:${distro_codename}-infra-security"
+
+# Mettre à jour automatiquement les paquets
+auto_upgrades_auto_fix_interrupted_dpkg: true
+auto_upgrades_minimal_steps: true
+auto_upgrades_install_on_shutdown: false
+
+# Redémarrage automatique si nécessaire
+auto_upgrades_automatic_reboot: false
+auto_upgrades_automatic_reboot_time: "02:00"
+
+# Nettoyer les anciens paquets
+auto_upgrades_remove_unused_dependencies: true
+auto_upgrades_remove_new_unused_dependencies: true
+auto_upgrades_auto_clean_interval: 7
+
+# Email pour les notifications (optionnel)
+auto_upgrades_mail: ""
+auto_upgrades_mail_on_error_only: true
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+
+# Activer les labels pour Promtail/Loki (optionnel)
+basic_server_hardening_enable_logging_labels: false

@@ -1,0 +1,43 @@
+# Fail2Ban configuration
+# Managed by basic_server_hardening role - DO NOT EDIT MANUALLY
+
+[DEFAULT]
+# Ban hosts for one hour:
+bantime = {{ fail2ban_ssh_bantime }}
+
+# Override /etc/fail2ban/jail.d/00-firewalld.conf:
+banaction = ufw
+
+# Email settings
+{% if fail2ban_destemail %}
+destemail = {{ fail2ban_destemail }}
+sender = {{ fail2ban_sender }}
+action = {{ fail2ban_action }}
+{% else %}
+# No email configured
+action = %(action_)s
+{% endif %}
+
+# Ignore IPs
+ignoreip = {{ fail2ban_ignoreip | join(' ') }}
+
+# Find time window
+findtime = {{ fail2ban_ssh_findtime }}
+
+# Max retry attempts
+maxretry = {{ fail2ban_ssh_maxretry }}
+
+#
+# SSH servers
+#
+{% if fail2ban_ssh_enabled %}
+[sshd]
+enabled = true
+port = {{ fail2ban_ssh_port }}
+filter = sshd
+logpath = /var/log/auth.log
+backend = {{ fail2ban_ssh_backend }}
+maxretry = {{ fail2ban_ssh_maxretry }}
+findtime = {{ fail2ban_ssh_findtime }}
+bantime = {{ fail2ban_ssh_bantime }}
+{% endif %}

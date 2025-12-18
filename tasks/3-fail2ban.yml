@@ -1,0 +1,53 @@
+---
+# Fail2Ban Installation and Configuration
+
+- name: "Update APT cache"
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: ['fail2ban']
+
+- name: "Install Fail2Ban"
+  ansible.builtin.package:
+    name: fail2ban
+    state: present
+  tags: ['fail2ban']
+
+- name: "Ensure Fail2Ban configuration directory exists"
+  ansible.builtin.file:
+    path: /etc/fail2ban
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags: ['fail2ban']
+
+- name: "Deploy Fail2Ban jail.local configuration"
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart fail2ban
+  tags: ['fail2ban']
+
+- name: "Ensure Fail2Ban service is enabled and started"
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: started
+  tags: ['fail2ban']
+
+- name: "Check Fail2Ban status"
+  ansible.builtin.command: fail2ban-client status
+  register: fail2ban_status
+  changed_when: false
+  failed_when: false
+  tags: ['fail2ban']
+
+- name: "Display Fail2Ban status"
+  ansible.builtin.debug:
+    var: fail2ban_status.stdout_lines
+  when: fail2ban_status.rc == 0
+  tags: ['fail2ban']

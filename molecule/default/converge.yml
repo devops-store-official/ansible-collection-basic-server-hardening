@@ -1,0 +1,23 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    # Basic SSH hardening config for tests
+    ssh_hardening_port: 22
+    ssh_hardening_disable_root_login: true
+    ssh_hardening_password_authentication: false
+    
+    # Firewall config
+    firewall_enabled: true
+    
+    # Fail2Ban config
+    fail2ban_enabled: true
+    
+    # Auto-upgrades config
+    auto_upgrades_enabled: true
+
+  roles:
+    - role: devops_store.basic_server_hardening
