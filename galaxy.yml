@@ -15,8 +15,8 @@ tags:
   - firewall
   - ufw
   - fail2ban
-  - auto-upgrades
-  - unattended-upgrades
+  - auto_upgrades
+  - unattended_upgrades
   - debian
   - ubuntu
 
