@@ -9,7 +9,7 @@
 > 👉 **[See our High Availability modules (Keycloak, Postgres...)](https://devops.store/boutique)**
 
 <p align="center">
-  <img src="ILLUSTRATION.png" alt="Basic Server Hardening Illustration" width="400">
+  <img src="https://devops.store/wp-content/uploads/basic_server_hardening-illustration-1.png" alt="Basic Server Hardening Illustration" width="400">
 </p>
 
 ## 1. Summary
