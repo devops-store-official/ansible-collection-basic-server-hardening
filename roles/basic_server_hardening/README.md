@@ -1,6 +1,5 @@
-# Ansible Collection: Basic Server Hardening
+# Ansible Role: Basic Server Hardening
 
-[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-devops__store.basic__server__hardening-blue.svg)](https://galaxy.ansible.com/ui/repo/published/devops_store/basic_server_hardening)
 [![Sponsor](https://img.shields.io/badge/Support%20us-DevOps%20Store-ff69b4)](https://devops.store)
 
 > **💡 Are you using this role in production ?**
@@ -9,7 +8,7 @@
 > 👉 **[See our High Availability modules (Keycloak, Postgres...)](https://devops.store/boutique)**
 
 <p align="center">
-  <img src="ILLUSTRATION.png" alt="Basic Server Hardening Illustration" width="400">
+  <img src="../../ILLUSTRATION.png" alt="Basic Server Hardening Illustration" width="400">
 </p>
 
 ## 1. Summary
