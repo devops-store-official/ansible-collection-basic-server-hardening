@@ -1,14 +1,12 @@
 galaxy_info:
-  author: Robin LETOURNEUR
+  role_name: basic_server_hardening
+  authors: Robin LETOURNEUR
   description: Basic server hardening for Debian/Ubuntu (SSH, Firewall, Fail2Ban, Auto-Upgrades)
   company: DevOps Store (Robin LETOURNEUR)
 
   license: MIT
 
   min_ansible_version: "2.14"
-
-  namespace: rletourneur-devops-store
-  role_name: basic-server-hardening
 
   platforms:
     - name: Debian

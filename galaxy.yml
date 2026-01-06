@@ -1,0 +1,23 @@
+namespace: "devops_store"
+name: "basic_server_hardening"
+version: "1.0.0"
+authors:
+  - Robin LETOURNEUR
+license:
+  - "MIT"
+
+readme: "README.md"
+
+tags:
+  - security
+  - hardening
+  - ssh
+  - firewall
+  - ufw
+  - fail2ban
+  - auto-upgrades
+  - unattended-upgrades
+  - debian
+  - ubuntu
+
+repository: https://github.com/devops-store-official/ansible-role-basic-server-hardening

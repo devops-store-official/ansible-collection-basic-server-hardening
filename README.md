@@ -1,6 +1,6 @@
-# Ansible Role: Basic Server Hardening
+# Ansible Collection: Basic Server Hardening
 
-[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-rletourneur--devops--store.basic--server--hardening-blue.svg)](https://galaxy.ansible.com/ui/standalone/roles/rletourneur-devops-store/basic-server-hardening)
+[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-devops--store--official.basic--server--hardening-blue.svg)](https://galaxy.ansible.com/ui/repo/published/devops_store/basic_server_hardening)
 [![Sponsor](https://img.shields.io/badge/Support%20us-DevOps%20Store-ff69b4)](https://devops.store)
 
 > **💡 Are you using this role in production ?**
