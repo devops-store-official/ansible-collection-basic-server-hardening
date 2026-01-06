@@ -20,4 +20,4 @@ tags:
   - debian
   - ubuntu
 
-repository: https://github.com/devops-store-official/ansible-role-basic-server-hardening
+repository: https://github.com/devops-store-official/ansible-collection-basic-server-hardening
